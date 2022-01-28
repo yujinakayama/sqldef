@@ -730,6 +730,22 @@ func TestPsqldefCreateIndexWithOperatorClass(t *testing.T) {
 	assertApplyOutput(t, createTable, nothingModified)
 }
 
+func TestPsqldefCreateIndexWithExpression(t *testing.T) {
+	resetTestDatabase()
+
+	createTable := stripHeredoc(`
+		CREATE TABLE users (
+			phone_number VARCHAR(20),
+			metadata JSONB -- e.g. { "address": { "country": "Japan" } }
+		);
+		CREATE INDEX "index_users_phone_number" on users ((replace(phone_number, '-', '')) ASC);
+		CREATE INDEX "index_metadata_address_country" on users ((metadata->'address'->>'country'));
+		`,
+	)
+	assertApplyOutput(t, createTable, applyPrefix+createTable)
+	assertApplyOutput(t, createTable, nothingModified)
+}
+
 func TestPsqldefCreateType(t *testing.T) {
 	resetTestDatabase()
 
